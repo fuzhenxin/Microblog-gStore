@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>My_follow</title>
+</head>
+
+<style>
+body
+{
+    top: 0;
+    left: 0;
+    width:100%;
+    height:100%;
+    min-width: 1000px;
+    z-index:-10;
+    background-repeat: no-repeat;
+    background-size: cover;
+    -webkit-background-size: cover;
+    -o-background-size: cover;
+    background-position: center 0;
+	background-image: url('/static/background.jpg');
+}
+input[type=submit] {
+    padding: 8px 16px;
+	width:100px;
+    border: none;
+    border-radius: 4px;
+	text-align: center;
+	text-decoration: none;
+    cursor: pointer;
+	display: inline-block;
+    font-size: 16px;
+}	
+input[type=submit]:hover {
+    background-color: #7FFFD4;
+}
+.delete {
+  background-color: #c6ced4;
+}
+a{
+    text-decoration: none;
+	color: blue;
+}
+a:active{
+    text-decoration: blink;
+}
+a:hover{
+	color: red;
+}
+</style>
+
+<body>
+
+<div>
+<form action="{% url 'myapp:profile' %}" method="get">
+<span id="return" style="float:left;margin-left: 30px;"><input type="submit" value="返回主页"></span>
+</form>
+<form action="{% url 'myapp:index' %}" method="get">
+<span id="exit" style="float:right;margin-right: 30px;"><input type="submit" onClick="cancel()" value="退出登陆"></span>
+</form>
+</div>
+    <table id="blank" align="center" style="margin-top:25px;" cellpadding="10">
+        <tr><th>&nbsp;</th></tr>
+    </table>
+
+{% if follow_users %}
+    <table id="blocks" align="center" style="margin-top:25px;" cellpadding="10">
+    {% for follow_user in follow_users %}
+	    <tr>
+			<th><a href="{% url 'myapp:get_user_home' follow_user.uid %}">{{ follow_user.name }}</a></th>
+			<th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+		    <th>
+			<form action="{% url 'myapp:delete_follow_user' follow_user.uid %}" method="get"> 
+            <input type="submit" value="取消关注" class="delete" onClick="del()" /></form> 
+			</th> 
+		</tr>
+    {% endfor %}
+    </table>
+{% else %}
+    <p>No follow_users are available.</p>
+{% endif %}
+    <div id="page" style="float:right;margin-right: 50px;font-size: 20px;">
+        <span id="first">First</span>&nbsp;&nbsp;
+        <span id="pre">Pre</span>&nbsp;&nbsp;
+        <span id="current"></span>&nbsp; / &nbsp;<span id="total"></span>&nbsp;&nbsp;
+        <span id="next">Next</span>&nbsp;&nbsp;
+        <span id="last">Last</span>&nbsp;&nbsp;
+    </div>
+
+
+<script>
+var blockTable;
+var num;      
+var pagesize;	//页面大小
+var pagecount;	//页面数量
+var pagenum;	//页号
+
+var firstspan;
+var prespan;
+var currentspan;
+var totalspan;
+var nextspan;
+var lastspan;
+
+window.onload=function(){
+    blockTable = document.getElementById("blocks");
+    num = blockTable.rows.length; 
+    pagesize = 20;
+    pagecount = parseInt(num/pagesize);
+	if(num%pagesize != 0){
+        pagecount += 1;
+    }
+	firstspan = document.getElementById("first");
+	prespan = document.getElementById("pre");
+	currentspan = document.getElementById("current");
+	totalspan = document.getElementById("total");
+	nextspan = document.getElementById("next");
+	lastspan = document.getElementById("last");
+	
+    firstpage();
+};
+
+function firstpage(){
+    hide();
+    pagenum = 1;
+	show(pagenum);
+	var end = pagesize
+	if(end > num ){
+        end = num;
+    }
+    for(var i = 0; i < end; i++){
+        blockTable.rows[i].style.display = "";
+    }
+    showfirst();
+    showpre();
+	if(pagesize >= num){
+        shownext();
+        showlast();	    
+	}
+	else{
+        linknext();
+        linklast();
+	}
+}
+
+function prepage(){
+    hide();
+    pagenum--;
+    show(pagenum);
+    var start = pagesize*(pagenum - 1);
+	var end = start + pagesize;
+	if(end > num ){
+        end = num;
+    }
+    for(var i = start; i < end; i++){
+        blockTable.rows[i].style.display = "";
+    }
+    if(pagenum == 1){
+		showfirst();
+        showpre();
+    }
+	else{
+	    linkfirst();
+        linkpre();
+    }
+    linknext();
+    linklast();
+}
+
+function nextpage(){
+    hide();
+    pagenum++;
+    show(pagenum);
+    var start = pagesize*(pagenum - 1);
+	var end = start + pagesize;
+	if(end > num ){
+        end = num;
+    }
+    for(var i = start; i < end; i++){
+        blockTable.rows[i].style.display = "";
+    }
+	linkfirst();
+    linkpre();
+    if(pagenum == pagecount){
+        shownext();
+        showlast();
+    }
+	else{
+        linknext();
+        linklast();
+    }
+}
+
+function lastpage(){
+    hide();
+    pagenum = pagecount;
+    show(pagenum);
+    var start = pagesize*(pagenum - 1);
+    for(var i = start; i < num; i++){
+        blockTable.rows[i].style.display = "";
+    }
+	linkfirst();
+    linkpre();
+    shownext();
+    showlast();
+}
+
+function hide(){
+    for(var i = 0; i < num; i++){
+        blockTable.rows[i].style.display = "none";
+    }
+}
+
+function show(cpn){
+    currentspan.innerHTML = cpn;
+    totalspan.innerHTML = pagecount;
+}
+
+function linkfirst(){
+    firstspan.innerHTML = "<a href='javascript:firstpage();'>First</a>";
+}
+	
+function showfirst(){
+    firstspan.innerHTML = "First";
+}
+
+function linkpre(){
+    prespan.innerHTML = "<a href='javascript:prepage();'>Pre</a>";
+}
+	
+function showpre(){
+    prespan.innerHTML = "Pre";
+}
+
+function linknext(){
+    nextspan.innerHTML = "<a href='javascript:nextpage();'>Next</a>";
+}
+	
+function shownext(){
+    nextspan.innerHTML = "Next";
+}
+
+function linklast(){
+    lastspan.innerHTML = "<a href='javascript:lastpage();'>Last</a>";
+}
+	
+function showlast(){
+    lastspan.innerHTML = "Last";
+}
+
+function del(){
+    if (!confirm("是否不再关注此用户？")) { 
+        window.event.returnValue = false; 
+    } 
+}
+
+function cancel(){
+    if (!confirm("确定退出登陆？")) { 
+        window.event.returnValue = false; 
+    } 
+}
+</script>
+
+</body>
+</html>
+

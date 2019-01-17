@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <style>
+    body
+    {
+        top: 0;
+        left: 0;
+        width:100%;
+        height:100%;
+        min-width: 1000px;
+        z-index:-10;
+        background-repeat: no-repeat;
+        background-size: cover;
+        -webkit-background-size: cover;
+        -o-background-size: cover;
+        background-position: center 0;
+        background-image: url('/static/background.jpg');
+    }
+    .container {
+        border-radius: 5px;
+        background-color: #F0FFFF;
+        padding: 20px;
+		margin-top: 10%;
+        margin-left: 39%;
+        margin-right: 39%;
+    }	
+	input[type=text]:focus{
+        outline: none;
+        border: 1px solid #FF4500;
+    }
+	input[type=submit] {
+        color: white;
+        padding: 5px 10px;
+		width:250px;
+		height:10px
+        border: none;
+        border-radius: 4px;
+		text-align: center;
+		text-decoration: none;
+        cursor: pointer;
+		display: inline-block;
+        font-size: 16px;
+    }	
+    </style>	
+
+</head>
+<body>
+<div align="center" class="container">
+
+    <form id="info" action="{% url 'myapp:check_register' %}" method="post">
+        {% csrf_token %}
+        <table>
+            <tbody>
+            <tr>
+                <th>用户名：</th>
+                <td><input type="text" name="name" style="width:180px;height:25px"></td>
+            </tr>
+			<tr><td colspan=2>&nbsp;</td></tr>
+            <tr>
+                <th>密码：</th>
+                <td><input type="text" name="password" style="width:180px;height:25px"></td>
+            </tr>
+			<tr><td colspan=2>&nbsp;</td></tr>
+            <tr>
+                <th>昵称：</th>
+                <td><input type="text" name="screen_name" style="width:180px;height:25px"></td>
+            </tr>
+			<tr><td colspan=2>&nbsp;</td></tr>
+            <tr>
+                <th>性别：</th>
+                <td><input type="radio" name="gender" value="m">男 &nbsp;&nbsp;&nbsp; <input type="radio" name="gender" value="f">女</td>
+            </tr>
+			<tr><td colspan=2>&nbsp;</td></tr>
+            <tr>
+                <th>地区：</th>
+                <td><input type="text" name="location" style="width:180px;height:25px"></td>
+            </tr>
+			<tr><td colspan=2>&nbsp;</td></tr>
+            <tr>
+                <td colspan=2><input type="submit" value="立即注册" onClick="cancel()" style="background-color: #4CAF50;"></td>
+            </tr>
+			</form>
+			<form id="return" action="{% url 'myapp:index' %}" method="get">
+			<tr><td colspan=2>&nbsp;</td></tr>
+            <tr>
+                <td colspan=2><input type="submit" value="返回登陆" style="background-color: #FF4500;"></td>
+            </tr>
+            </form>			
+            </tbody>
+        </table>
+</div>
+<script>
+function cancel(){
+    if (!confirm("确定注册该用户？")) { 
+        window.event.returnValue = false; 
+    } 
+}
+</script>
+
+</body>
+</html>

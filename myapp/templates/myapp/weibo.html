@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weibo</title>
+<style>
+body {font-family: Arial, Helvetica, sans-serif;}
+* {box-sizing: border-box;}
+
+input[type=text], select, textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    margin-top: 6px;
+    margin-bottom: 16px;
+    resize: vertical;
+}
+input[type=text], select, textarea:focus{
+    outline: none;
+    border: 1px solid #FF4500;
+}
+input[type=submit] {
+    background-color: rgb(161, 161, 161);
+	color: white;
+    padding: 8px 16px;
+	width:100px;
+    border: none;
+    border-radius: 4px;
+	text-align: center;
+	text-decoration: none;
+    cursor: pointer;
+	display: inline-block;
+    font-size: 16px;
+}	
+input[type=submit]:hover {
+    background-color: #FF4500;
+}
+
+.container {
+    border-radius: 5px;
+    background-color: #f2f2f2;
+    padding: 20px;
+}
+.weibo_container {
+    border-radius: 5px;
+    background-color: #dae1e6;
+    padding: 20px;
+}
+.button {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+.button:hover {
+  background-color: #FF4500;
+}
+.button_showmore {
+  background-color: rgb(161, 161, 161); /* Green */
+  border: none;
+  color: white;
+  padding: 8px 40px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+.button_showmore:hover {
+  background-color: #FF4500;
+}
+a{
+    text-decoration: none;
+	color: blue;
+}
+a:active{
+    text-decoration: blink;
+}
+a:hover{
+	color: red;
+}
+</style>
+</head>
+<body>
+
+<div id="top">
+<form action="{% url 'myapp:index' %}" method="get">
+<h1 align="center"><span><a href="profile">我的主页</a></span>
+<span style="float:right;"><input type="submit" onClick="cancel()" value="退出登陆"></span><br>
+</h1></form>
+</div>
+{%  if myhomepage %}
+<div class="container">
+    <textarea id="send_weibo_area" name="send_weibo_area" placeholder="Share your life.." style="height:200px"></textarea>
+    <div><input type="button" value="发微博" class="button" onclick="submit_weibo()"> <span stype="float:conter;"> <a href="vis.html">时间轴</a> </span>
+</div>
+
+{% else %}
+{% endif %}
+
+<div class="container" id="weibos">
+<p> Loading ...</p>
+</div>
+
+<div>
+<span style="float:left;"><input type="button" value="展示更多" class="button_showmore" onclick="get_weibo()"></span>
+<span style="float:right;"><input type="button" value="返回顶部" class="button_showmore" onclick="javascript:scroll(0,0)"></span>
+</div>
+
+<script  type="text/javascript">
+function submit_weibo(){
+    xmlhttp = new XMLHttpRequest();
+    post_body_str = 'weibo_text="'+document.getElementById("send_weibo_area").value+'"&weibo_topic=FZX';
+    //alert(document.getElementById("send_weibo_area").value);
+    xmlhttp.onreadystatechange = function(){
+        if (this.readyState == 4 && this.status == 200) {
+            document.getElementById("send_weibo_area").value = xmlhttp.responseText;
+            cur_num = 0;
+            get_weibo();
+        }
+    }
+    xmlhttp.open("POST", "send_weibo", true);
+    xmlhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xmlhttp.send(post_body_str);
+}
+String.prototype.format = function () {
+  var i = 0, args = arguments;
+  return this.replace(/{}/g, function () {
+    return typeof args[i] != 'undefined' ? args[i++] : '';
+  });
+};
+cur_num = 0;
+function get_weibo(){
+    xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function(){
+        if (this.readyState == 4 && this.status == 200) {
+            var res_list = xmlhttp.responseText;
+            //alert(res_list);
+            res_list = JSON.parse(res_list)
+            //alert(res_list);
+            if(cur_num==0){
+                var weibo_content="";
+            }else{
+                var weibo_content = document.getElementById("weibos").innerHTML;
+            }
+            for (var i=0; i< res_list.length;i++){
+                weibo_content_per = '<div class="weibo_container"> <p> <a href="get_user_home/{}">{}</a> </p> <p>{}</p>时间：{} &nbsp;&nbsp;&nbsp; 点赞数：{} &nbsp;&nbsp;&nbsp; 转发数：{} <p>  </p></div><br>'.format(res_list[i]["weibo_uid"], res_list[i]["weibo_uid_name"], res_list[i]["weibo_text"], res_list[i]["weibo_date"], res_list[i]["weibo_attitudesnum"], res_list[i]["weibo_repostsnum"]);
+            
+                weibo_content += weibo_content_per;
+            }
+            cur_num += 10;
+            document.getElementById("weibos").innerHTML = weibo_content;
+        }
+    }
+    xmlhttp.open("GET", "get_my_follow_weibo?start="+cur_num.toString(), true);
+    xmlhttp.send();
+    
+}
+get_weibo();
+function cancel(){
+    if (!confirm("确定退出登陆？")) { 
+        window.event.returnValue = false; 
+    } 
+}
+</Script>
+
+
+</body>
+</html>

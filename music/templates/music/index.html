@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body {font-family: Arial, Helvetica, sans-serif;}
+        * {box-sizing: border-box;}
+
+        input[type=text], select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-top: 6px;
+            margin-bottom: 16px;
+            resize: vertical;
+            font-size: 18px;
+        }
+
+        input[type=submit] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        input[type=submit]:hover {
+            background-color: #45a049;
+        }
+
+        .container {
+            border-radius: 5px;
+            background-color: #f2f2f2;
+            padding: 20px;
+        }
+    </style>
+
+    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var form = $('#testform');
+            form.submit(function (e) {
+                e.preventDefault();
+                var query = form.find('[name=sparql]');
+                var result = form.find('#result');
+                $.get(form.attr('action'),
+                    {'sparql': query.val()},
+                    function(data, status){
+                        data = data['result'];
+                        var text = 'returned rows:' + data.length + '\n';
+                        var list = data.join('\n');
+                        result.val(text + list);
+                        alert(data + '\n' + status);
+                    }
+                );
+            });
+        });
+    </script>
+</head>
+<body>
+<div class="container">
+    <form id="testform" action="{% url 'music:query' %}" method="post">
+         {% csrf_token %}
+
+        <label for="fname" style="font-size=20px;">Query</label>
+        <textarea id="query" name="sparql" rows="10" style="text-align:left; overflow:auto;
+                  border:6px;">PREFIX sound: <http://www.unisound.com/knowledge_graph/vocab/>
+        select ?m ?n where{
+            ?m sound:song_composer "王菲".
+            ?m sound:song_name ?n.
+        }
+        </textarea>
+        <label>Result</label>
+        <textarea id="result" name="subject" placeholder="..."
+                  rows="10" style="text-align:left;">
+        </textarea>
+        <p><input type="submit" value="Submit"/></p>
+    </form>
+</div>
+</body>
+</html>

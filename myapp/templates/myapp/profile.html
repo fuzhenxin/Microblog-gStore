@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile</title>
+    <style>
+body
+{
+    top: 0;
+    left: 0;
+    width:100%;
+    height:100%;
+    min-width: 1000px;
+    z-index:-10;
+    background-repeat: no-repeat;
+    background-size: cover;
+    -webkit-background-size: cover;
+    -o-background-size: cover;
+    background-position: center 0;
+	background-image: url('/static/background.jpg');
+}
+.container {
+    border-radius: 5px;
+    padding: 20px;
+}
+.weibo_container {
+    border-radius: 5px;
+    background-color: #dae1e6;
+    padding: 20px;
+}
+input[type=submit] {
+    padding: 8px 16px;
+	width:100px;
+    border: none;
+    border-radius: 4px;
+	text-align: center;
+	text-decoration: none;
+    cursor: pointer;
+	display: inline-block;
+    font-size: 16px;
+}	
+a{
+    text-decoration: none;
+	color: blue;
+}
+a:active{
+    text-decoration: blink;
+}
+a:hover{
+	color: red;
+}
+.button_showmore {
+  background-color: rgb(161, 161, 161); /* Green */
+  border: none;
+  color: white;
+  padding: 8px 40px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+.button_showmore:hover {
+  background-color: #FF4500;
+}
+.delete {
+  background-color: #c6ced4; /* Green */
+  border: none;
+  color: black;
+  padding: 3px 7px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+.delete:hover {
+  background-color: #7FFFD4;
+}
+
+</style>
+</head>
+<body>
+{% if user %}
+    <div align="center">
+        <img src="/static/photo.gif" alt="failure" style="width:180px; height:180px; border-radius:100%; overflow:hidden;">
+        <h1>昵称 {{ user.screen_name }}</h1>
+        <h4>{{ user.location }} &nbsp;&nbsp;  
+		{% if user.gender == 'f'%}
+		    性别：<font color="#FF00FF">女</font></h4>
+		{% else %}
+		    性别：<font color="#0000FF">男</font></h4>
+		{% endif %}
+    </div>
+
+    <h1 align="center"><a href="#">微博</a>  <span id="weibo_num">{{ weibo_num }}</span> &nbsp; &nbsp; &nbsp;
+    <a href="/myapp/get_my_follow_user">关注</a> {{ follow_num }} &nbsp; &nbsp; &nbsp;
+    <a href="/myapp/get_my_fan">粉丝</a> {{ fan_num }}</h1>
+
+	<table align="center">
+	<tr>
+    <td><form action="{% url 'myapp:get_home' %}" method="get">
+    {% csrf_token %}
+    <input type="submit" value="发微博" style="color: white; background-color: #4CAF50;">
+    </form></td>
+	<td>&nbsp; &nbsp; &nbsp;</td>
+	<td><form action="{% url 'myapp:edit_profile' %}" method="get">
+    {% csrf_token %}
+    <input type="submit" value="设置">
+    </form></td>
+	<td>&nbsp; &nbsp; &nbsp;</td>
+	<td><form action="{% url 'myapp:index' %}" method="get">
+    {% csrf_token %}
+    <input type="submit" value="退出登陆" onClick="cancel()" style="color: white; background-color: rgb(161, 161, 161);">
+    </form></td>
+	</tr>
+	</table>
+{% else %}
+    <p>No user are available.</p>
+{% endif %}
+
+
+<div class="container" id="weibos">
+    <p> Loading ...</p>
+</div>
+
+<div>
+<span style="float:left;"><input type="button" value="展示更多" class="button_showmore" onclick="get_weibo()"></span>
+<span style="float:right;"><input type="button" value="返回顶部" class="button_showmore" onclick="javascript:scroll(0,0)"></span>
+</div>
+
+<script>
+String.prototype.format = function () {
+    var i = 0, args = arguments;
+    return this.replace(/{}/g, function () {
+      return typeof args[i] != 'undefined' ? args[i++] : '';
+    });
+  };
+  cur_num = 0;
+  function get_weibo(){
+      xmlhttp = new XMLHttpRequest();
+      xmlhttp.onreadystatechange = function(){
+          if (this.readyState == 4 && this.status == 200) {
+              var res_list = xmlhttp.responseText;
+              res_list = JSON.parse(res_list)
+              if(cur_num==0){
+                    var weibo_content="";
+                }else{
+                    var weibo_content = document.getElementById("weibos").innerHTML;
+                }
+              for (var i=0; i< res_list.length;i++){
+                  weibo_content_per = '<div class="weibo_container" id="{}"> <p> <a href="{}">{}</a> </p> <p>{}</p>时间: {} &nbsp;&nbsp;&nbsp; 点赞数：{} &nbsp;&nbsp;&nbsp; 转发数：{} &nbsp;&nbsp;&nbsp; <input type="button" class="delete" value="删除"  onclick="delete_weibo({})"></div><br>'.format(res_list[i]["weibo_mid"],res_list[i]["weibo_uid"], res_list[i]["weibo_uid_name"], res_list[i]["weibo_text"], res_list[i]["weibo_date"], res_list[i]["weibo_attitudesnum"], res_list[i]["weibo_repostsnum"], res_list[i]["weibo_mid"]);
+                  weibo_content += weibo_content_per;
+                  //alert(res_list[i]["weibo_mid"]);
+              }
+              cur_num += 10;
+              document.getElementById("weibos").innerHTML = weibo_content;
+          }
+      }
+      xmlhttp.open("GET", "get_my_weibo?user_id="+"{{ user.uid }}&start="+cur_num.toString(), true);
+      xmlhttp.send();
+  }
+  get_weibo();
+
+function delete_weibo(weibo_mid){
+    xmlhttp = new XMLHttpRequest();
+      xmlhttp.onreadystatechange = function(){
+          if (this.readyState == 4 && this.status == 200) {
+              var res_list = xmlhttp.responseText;
+              res_list = JSON.parse(res_list)
+              if(res_list["status"]=="success"){
+                element = document.getElementById(weibo_mid);
+                element. parentNode. removeChild(element);
+                document.getElementById("weibo_num").innerHTML = document.getElementById("weibo_num").innerHTML-1;
+              }else{
+                  alert(res_list["status"]);
+              }
+          }
+      }
+      xmlhttp.open("GET", "delete_weibo?weibo_mid="+weibo_mid.toString(), true);
+      xmlhttp.send();
+}
+
+function cancel(){
+    if (!confirm("确定退出登陆？")) { 
+        window.event.returnValue = false; 
+    } 
+}
+  </script>
+
+
+</body>
+</html>

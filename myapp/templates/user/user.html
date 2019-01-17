@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>User</title>
+
+<style>
+body
+{
+    top: 0;
+    left: 0;
+    width:98%;
+    height:98%;
+    min-width: 1000px;
+    z-index:-10;
+    background-repeat: no-repeat;
+    background-size: cover;
+    -webkit-background-size: cover;
+    -o-background-size: cover;
+    background-position: center 0;
+	background-image: url('/static/background.jpg');
+}
+.container {
+    border-radius: 5px;
+    padding: 20px;
+}
+.weibo_container {
+    border-radius: 5px;
+    background-color: #dae1e6;
+    padding: 20px;
+}
+.button {
+  background-color: #FF4500;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 4px;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+}
+.button:hover {
+  background-color: #FF6347;
+}
+.button_follow {
+  background-color: #A9A9A9;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+}
+a{
+    text-decoration: none;
+	color: blue;
+}
+a:active{
+    text-decoration: blink;
+}
+a:hover{
+	color: red;
+}
+.button_showmore {
+  background-color: rgb(161, 161, 161); /* Green */
+  border: none;
+  color: white;
+  padding: 8px 40px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+.button_showmore:hover {
+  background-color: #FF4500;
+}
+
+
+input[type=submit] {
+    padding: 8px 16px;
+        width:100px;
+    border: none;
+    border-radius: 4px;
+        text-align: center;
+        text-decoration: none;
+    cursor: pointer;
+        display: inline-block;
+    font-size: 16px;
+}
+input[type=submit]:hover {
+    background-color: #7FFFD4;
+}
+.delete {
+  background-color: #c6ced4;
+}
+a{
+    text-decoration: none;
+        color: blue;
+}
+a:active{
+    text-decoration: blink;
+}
+a:hover{
+        color: red;
+}
+
+</style>
+</head>
+<body>
+
+
+<div>
+<form action="{% url 'myapp:profile' %}" method="get">
+<span id="return" style="float:left;margin-left: 30px;"><input type="submit" value="返回主页"></span>
+</form>
+<form action="{% url 'myapp:index' %}" method="get">
+<span id="exit" style="float:right;margin-right: 30px;"><input type="submit" onClick="cancel()" value="退出登陆"></span>
+</form>
+</div>
+
+
+<div align="center">
+<img src="/static/photo.gif" alt="failure" style="width:180px; height:180px; border-radius:100%; overflow:hidden;"> 
+<h1>昵称 {{ name }}</h1>
+<h4>{{ location }} &nbsp;&nbsp;
+{% if gender == 'f'%}
+	性别：<font color="#FF00FF">女</font></h4>
+{% else %}
+	性别：<font color="#0000FF">男</font></h4>
+{% endif %}
+</div>
+
+<h1 align="center"><a href="#">微博</a> {{ weibo_num }} &nbsp; &nbsp; &nbsp;
+<a href="{% url 'myapp:get_follow_user' uid %}">关注</a> {{ follow_num }} &nbsp; &nbsp; &nbsp;  
+<a href="{% url 'myapp:get_fan' uid %}">粉丝</a> {{ fan_num }}</h1>
+<h1 align="center">
+{% if flag == 0 %}
+    <button type="button" class="button" onclick="add({{ uid }})">关注TA</button>
+{% else %}
+    <button type="button" disabled="true" class="button_follow" onclick="add({{ uid }})">已关注</button>
+{% endif %}
+</h1>
+
+<div class="container" id="weibos">
+    <p> Loading ...</p>
+</div>
+<div>
+<span style="float:left;"><input type="button" value="展示更多" class="button_showmore" onclick="get_weibo()"></span>
+<span style="float:right;"><input type="button" value="返回顶部" class="button_showmore" onclick="javascript:scroll(0,0)"></span>
+</div>
+
+<script>
+function add(uid)
+{
+    window.location.href = uid+"add_follow_user"
+}
+
+String.prototype.format = function () {
+  var i = 0, args = arguments;
+  return this.replace(/{}/g, function () {
+    return typeof args[i] != 'undefined' ? args[i++] : '';
+  });
+};
+cur_num = 0;
+function get_weibo(){
+    xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function(){
+        if (this.readyState == 4 && this.status == 200) {
+            var res_list = xmlhttp.responseText;
+            res_list = JSON.parse(res_list)
+            if(cur_num==0){
+                var weibo_content="";
+            }else{
+                var weibo_content = document.getElementById("weibos").innerHTML;
+            }
+            for (var i=0; i< res_list.length;i++){
+                weibo_content_per = '<div class="weibo_container"> <p> <a href="{}">{}</a> </p> <p>{}</p>时间: {} &nbsp;&nbsp;&nbsp; 点赞数：{} &nbsp;&nbsp;&nbsp; 转发数：{} <p>  </p></div><br>'.format(res_list[i]["weibo_uid"], res_list[i]["weibo_uid_name"], res_list[i]["weibo_text"], res_list[i]["weibo_date"], res_list[i]["weibo_attitudesnum"], res_list[i]["weibo_repostsnum"]);
+                weibo_content += weibo_content_per;
+            }
+            cur_num += 10;
+            document.getElementById("weibos").innerHTML = weibo_content;
+        }
+    }
+    xmlhttp.open("GET", "../get_my_weibo?user_id={{uid}}&start="+cur_num.toString(), true);
+    xmlhttp.send();
+    
+}
+get_weibo();
+</script>
+
+</body>
+</html>
+
